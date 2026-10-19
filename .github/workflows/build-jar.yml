@@ -1,28 +1,51 @@
-name: Build SLF4J JARs
+name: Build SLF4J & Java-WebSocket JARs
 
 on:
+  workflow_dispatch: # Allows manual triggering from the GitHub UI
   push:
-    branches: [ master, main ]
+    branches: [ main ]
 
 jobs:
-  build:
+  build-jars:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
+      # 1. Checkout the SLF4J repository
+      - name: Checkout SLF4J
+        uses: actions/checkout@v4
+        with:
+          repository: qos-ch/slf4j
+          path: slf4j
 
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
-      with:
-        distribution: 'temurin'
-        java-version: '17'
+      # 2. Build the SLF4J API JAR
+      - name: Build SLF4J API
+        working-directory: slf4j
+        run: |
+          mvn clean package -pl slf4j-api -am -DskipTests
 
-    - name: Build with Maven
-      run: mvn clean package -DskipTests
+      # 3. Checkout the Java-WebSocket repository
+      - name: Checkout Java-WebSocket
+        uses: actions/checkout@v4
+        with:
+          repository: TooTallNate/Java-WebSocket
+          path: java-websocket
 
-    - name: Upload JAR Artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: slf4j-api-jar
-        path: slf4j-api/target/slf4j-api-*.jar
+      # 4. Build the Java-WebSocket JAR
+      - name: Build Java-WebSocket
+        working-directory: java-websocket
+        run: |
+          mvn clean package -DskipTests
+
+      # 5. Upload the SLF4J API JAR
+      - name: Upload SLF4J API JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: slf4j-api-jar
+          path: slf4j/slf4j-api/target/slf4j-api-*.jar
+
+      # 6. Upload the Java-WebSocket JAR
+      - name: Upload Java-WebSocket JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: java-websocket-jar
+          path: java-websocket/target/Java-WebSocket-*.jar
