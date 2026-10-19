@@ -1,4 +1,4 @@
-name: Build SLF4J JAR
+name: Build SLF4J JARs
 
 on:
   push:
